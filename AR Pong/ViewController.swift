@@ -11,8 +11,10 @@ import SceneKit
 import ARKit
 
 class ViewController: UIViewController, ARSCNViewDelegate {
-
+    
     @IBOutlet var sceneView: ARSCNView!
+    var ship:SCNNode?
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,9 +27,12 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Create a new scene
         let scene = SCNScene(named: "art.scnassets/ship.scn")!
+        ship = scene.rootNode.childNodes.first
+        
         
         // Set the scene to the view
-        sceneView.scene = scene
+        sceneView.scene = SCNScene()
+        sceneView.scene.rootNode.addChildNode(ship!)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -35,7 +40,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Create a session configuration
         let configuration = ARWorldTrackingConfiguration()
-
+        
         // Run the view's session
         sceneView.session.run(configuration)
     }
@@ -46,17 +51,17 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Pause the view's session
         sceneView.session.pause()
     }
-
+    
     // MARK: - ARSCNViewDelegate
     
-/*
-    // Override to create and configure nodes for anchors added to the view's session.
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        let node = SCNNode()
+    /*
+     // Override to create and configure nodes for anchors added to the view's session.
+     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
+     let node = SCNNode()
      
-        return node
-    }
-*/
+     return node
+     }
+     */
     
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
@@ -70,6 +75,29 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     func sessionInterruptionEnded(_ session: ARSession) {
         // Reset tracking and/or remove existing anchors if consistent tracking is required
+        
+    }
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        if ship!.name != "hit" {
+            ship?.position.z += 0.2
+            if self.ship!.position.z > 20 {
+                ship?.position.z = -20
+            }
+            if self.ship!.position.y < -10{
+                ship?.removeFromParentNode()
+            }
+        }
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let touch = touches.first!
+        let location = touch.location(in: sceneView)
+        let hitResults = sceneView.hitTest(location, options: nil)
+        if hitResults.count > 0 {
+            ship!.physicsBody?.applyForce(SCNVector3(0.0, -1.0, -1.0), at: SCNVector3Zero, asImpulse: true)
+            ship!.name = "hit"
+            ship?.physicsBody?.isAffectedByGravity = true
+        }
         
     }
 }
