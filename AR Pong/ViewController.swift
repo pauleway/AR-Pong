@@ -50,6 +50,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Pause the view's session
         sceneView.session.pause()
+        // another comment
     }
     
     // MARK: - ARSCNViewDelegate
